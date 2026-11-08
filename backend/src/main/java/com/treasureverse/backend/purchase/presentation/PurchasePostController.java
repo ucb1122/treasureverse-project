@@ -1,17 +1,23 @@
 package com.treasureverse.backend.purchase.presentation;
 
-import com.treasureverse.backend.common.exception.*;
 import com.treasureverse.backend.common.response.ApiResponse;
+import com.treasureverse.backend.common.security.CurrentMember;
 import com.treasureverse.backend.purchase.application.PurchasePostService;
-import com.treasureverse.backend.purchase.domain.PurchasePost;
-import com.treasureverse.backend.purchase.domain.PurchaseStatus;
+import com.treasureverse.backend.purchase.presentation.request.CreatePurchasePostRequest;
+import com.treasureverse.backend.purchase.presentation.request.UpdatePurchasePostRequest;
+import com.treasureverse.backend.purchase.presentation.response.PurchasePostResponse;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.*;
-import java.math.BigDecimal;
-import java.util.*;
+import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/purchase-posts")
@@ -22,56 +28,47 @@ public class PurchasePostController {
     this.purchasePostService = purchasePostService;
   }
 
-  record Req(@NotBlank String title, @NotBlank String content, @Positive BigDecimal desiredPrice) {}
-
-  record Update(
-      @NotBlank String title,
-      @NotBlank String content,
-      @Positive BigDecimal desiredPrice,
-      @NotNull PurchaseStatus status) {}
-
-  record View(Long id, String title, BigDecimal desiredPrice, PurchaseStatus status) {}
-
-  View view(PurchasePost p) {
-    return new View(p.id(), p.title(), p.price(), p.status());
-  }
-
-  PurchasePost post(Long id) {
-    return purchasePostService.findById(id);
-  }
-
-  void owner(PurchasePost p, String u) {
-    if (!p.buyerId().equals(Long.valueOf(u))) throw new BusinessException(ErrorCode.CONFLICT);
-  }
-
   @PostMapping
-  public ApiResponse<View> create(@Valid @RequestBody Req r, @AuthenticationPrincipal String u) {
-    var p = purchasePostService.create(Long.valueOf(u), r.title(), r.content(), r.desiredPrice());
-    return ApiResponse.success(view(p));
+  public ApiResponse<PurchasePostResponse> create(
+      @Valid @RequestBody CreatePurchasePostRequest request,
+      @AuthenticationPrincipal CurrentMember currentMember) {
+    return ApiResponse.success(
+        PurchasePostResponse.from(
+            purchasePostService.create(
+                currentMember.id(), request.title(), request.content(), request.desiredPrice())));
   }
 
   @GetMapping
-  public ApiResponse<List<View>> list() {
-    return ApiResponse.success(purchasePostService.findAll().stream().map(this::view).toList());
+  public ApiResponse<List<PurchasePostResponse>> list() {
+    return ApiResponse.success(
+        purchasePostService.findAll().stream().map(PurchasePostResponse::from).toList());
   }
 
   @GetMapping("/{id}")
-  public ApiResponse<View> get(@PathVariable Long id) {
-    return ApiResponse.success(view(post(id)));
+  public ApiResponse<PurchasePostResponse> get(@PathVariable Long id) {
+    return ApiResponse.success(PurchasePostResponse.from(purchasePostService.findById(id)));
   }
 
   @PutMapping("/{id}")
-  public ApiResponse<View> update(
-      @PathVariable Long id, @Valid @RequestBody Update r, @AuthenticationPrincipal String u) {
-    var p =
-        purchasePostService.update(
-            id, Long.valueOf(u), r.title(), r.content(), r.desiredPrice(), r.status());
-    return ApiResponse.success(view(p));
+  public ApiResponse<PurchasePostResponse> update(
+      @PathVariable Long id,
+      @Valid @RequestBody UpdatePurchasePostRequest request,
+      @AuthenticationPrincipal CurrentMember currentMember) {
+    return ApiResponse.success(
+        PurchasePostResponse.from(
+            purchasePostService.update(
+                id,
+                currentMember.id(),
+                request.title(),
+                request.content(),
+                request.desiredPrice(),
+                request.status())));
   }
 
   @DeleteMapping("/{id}")
-  public ResponseEntity<Void> delete(@PathVariable Long id, @AuthenticationPrincipal String u) {
-    purchasePostService.delete(id, Long.valueOf(u));
+  public ResponseEntity<Void> delete(
+      @PathVariable Long id, @AuthenticationPrincipal CurrentMember currentMember) {
+    purchasePostService.delete(id, currentMember.id());
     return ResponseEntity.noContent().build();
   }
 }

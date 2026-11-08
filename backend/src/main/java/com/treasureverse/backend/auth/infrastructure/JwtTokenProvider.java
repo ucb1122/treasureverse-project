@@ -1,7 +1,7 @@
 package com.treasureverse.backend.auth.infrastructure;
 
 import com.treasureverse.backend.auth.domain.TokenProviderPort;
-import com.treasureverse.backend.auth.presentation.AuthToken;
+import com.treasureverse.backend.auth.domain.TokenResult;
 import com.treasureverse.backend.member.domain.Member;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -30,10 +30,10 @@ public class JwtTokenProvider implements TokenProviderPort {
     this.refreshSeconds = refreshSeconds;
   }
 
-  public AuthToken create(Member member) {
+  public TokenResult create(Member member) {
     String accessJti = UUID.randomUUID().toString();
     String refreshJti = UUID.randomUUID().toString();
-    return new AuthToken(
+    return new TokenResult(
         token(member, accessJti, accessSeconds, "access"),
         token(member, refreshJti, refreshSeconds, "refresh"),
         accessSeconds);

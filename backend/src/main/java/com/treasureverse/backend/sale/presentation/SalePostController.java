@@ -1,18 +1,25 @@
 package com.treasureverse.backend.sale.presentation;
 
-import com.treasureverse.backend.common.exception.*;
 import com.treasureverse.backend.common.response.ApiResponse;
+import com.treasureverse.backend.common.security.CurrentMember;
 import com.treasureverse.backend.sale.application.SalePostImageService;
 import com.treasureverse.backend.sale.application.SalePostService;
-import com.treasureverse.backend.sale.domain.SalePost;
-import com.treasureverse.backend.sale.domain.SaleStatus;
+import com.treasureverse.backend.sale.presentation.request.CreateSalePostImageRequest;
+import com.treasureverse.backend.sale.presentation.request.CreateSalePostRequest;
+import com.treasureverse.backend.sale.presentation.request.UpdateSalePostRequest;
+import com.treasureverse.backend.sale.presentation.response.SalePostResponse;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.*;
-import java.math.BigDecimal;
-import java.util.*;
+import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/sale-posts")
@@ -26,69 +33,56 @@ public class SalePostController {
     this.salePostImageService = salePostImageService;
   }
 
-  record Create(
-      @NotBlank @Size(max = 100) String title,
-      @NotBlank String content,
-      @Positive BigDecimal price) {}
-
-  record Update(
-      @NotBlank String title,
-      @NotBlank String content,
-      @Positive BigDecimal price,
-      @NotNull SaleStatus status) {}
-
-  record Image(String objectKey) {}
-
-  record View(Long id, String title, BigDecimal price, SaleStatus status) {}
-
-  private SalePost post(Long id) {
-    return salePostService.findById(id);
-  }
-
-  private void owner(SalePost p, String id) {
-    if (!p.sellerId().equals(Long.valueOf(id))) throw new BusinessException(ErrorCode.CONFLICT);
-  }
-
   @PostMapping
-  public ApiResponse<View> create(
-      @Valid @RequestBody Create r, @AuthenticationPrincipal String userId) {
-    var p = salePostService.create(Long.valueOf(userId), r.title(), r.content(), r.price());
-    return ApiResponse.success(new View(p.getId(), p.getTitle(), p.getPrice(), p.getStatus()));
+  public ApiResponse<SalePostResponse> create(
+      @Valid @RequestBody CreateSalePostRequest request,
+      @AuthenticationPrincipal CurrentMember currentMember) {
+    return ApiResponse.success(
+        SalePostResponse.from(
+            salePostService.create(
+                currentMember.id(), request.title(), request.content(), request.price())));
   }
 
   @PostMapping("/{id}/images")
-  public ApiResponse<Void> image(
-      @PathVariable Long id, @RequestBody Image r, @AuthenticationPrincipal String uid) {
-    salePostImageService.add(id, Long.valueOf(uid), r.objectKey());
+  public ApiResponse<Void> addImage(
+      @PathVariable Long id,
+      @Valid @RequestBody CreateSalePostImageRequest request,
+      @AuthenticationPrincipal CurrentMember currentMember) {
+    salePostImageService.add(id, currentMember.id(), request.objectKey());
     return ApiResponse.success(null);
   }
 
   @GetMapping
-  public ApiResponse<List<View>> list() {
+  public ApiResponse<List<SalePostResponse>> list() {
     return ApiResponse.success(
-        salePostService.findAll().stream()
-            .map(p -> new View(p.getId(), p.getTitle(), p.getPrice(), p.getStatus()))
-            .toList());
+        salePostService.findAll().stream().map(SalePostResponse::from).toList());
   }
 
   @GetMapping("/{id}")
-  public ApiResponse<View> get(@PathVariable Long id) {
-    var p = post(id);
-    return ApiResponse.success(new View(p.getId(), p.getTitle(), p.getPrice(), p.getStatus()));
+  public ApiResponse<SalePostResponse> get(@PathVariable Long id) {
+    return ApiResponse.success(SalePostResponse.from(salePostService.findById(id)));
   }
 
   @PutMapping("/{id}")
-  public ApiResponse<View> update(
-      @PathVariable Long id, @Valid @RequestBody Update r, @AuthenticationPrincipal String uid) {
-    var p =
-        salePostService.update(
-            id, Long.valueOf(uid), r.title(), r.content(), r.price(), r.status());
-    return ApiResponse.success(new View(p.getId(), p.getTitle(), p.getPrice(), p.getStatus()));
+  public ApiResponse<SalePostResponse> update(
+      @PathVariable Long id,
+      @Valid @RequestBody UpdateSalePostRequest request,
+      @AuthenticationPrincipal CurrentMember currentMember) {
+    return ApiResponse.success(
+        SalePostResponse.from(
+            salePostService.update(
+                id,
+                currentMember.id(),
+                request.title(),
+                request.content(),
+                request.price(),
+                request.status())));
   }
 
   @DeleteMapping("/{id}")
-  public ResponseEntity<Void> delete(@PathVariable Long id, @AuthenticationPrincipal String uid) {
-    salePostService.delete(id, Long.valueOf(uid));
+  public ResponseEntity<Void> delete(
+      @PathVariable Long id, @AuthenticationPrincipal CurrentMember currentMember) {
+    salePostService.delete(id, currentMember.id());
     return ResponseEntity.noContent().build();
   }
 }

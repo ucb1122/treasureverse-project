@@ -1,0 +1,1 @@
+-- Treasureverse schema changes are managed by Flyway from this migration onward.

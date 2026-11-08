@@ -1,6 +1,7 @@
 package com.treasureverse.backend.member.presentation;
 
 import com.treasureverse.backend.common.response.ApiResponse;
+import com.treasureverse.backend.common.security.CurrentMember;
 import com.treasureverse.backend.member.application.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -22,19 +23,21 @@ public class MemberController {
 
   @GetMapping("/me")
   @Operation(summary = "내 회원 정보 조회")
-  public ApiResponse<MemberProfileResponse> getMyProfile(@AuthenticationPrincipal String username) {
-    return ApiResponse.success(MemberProfileResponse.from(memberService.getMyProfile(username)));
+  public ApiResponse<MemberProfileResponse> getMyProfile(
+      @AuthenticationPrincipal CurrentMember currentMember) {
+    return ApiResponse.success(
+        MemberProfileResponse.from(memberService.getMyProfile(currentMember.id())));
   }
 
   @PatchMapping("/me")
   @Operation(summary = "내 회원 정보 수정")
   public ApiResponse<MemberProfileResponse> updateMyProfile(
-      @AuthenticationPrincipal String username,
+      @AuthenticationPrincipal CurrentMember currentMember,
       @Valid @RequestBody UpdateMemberProfileRequest request) {
     return ApiResponse.success(
         MemberProfileResponse.from(
             memberService.updateMyProfile(
-                username,
+                currentMember.id(),
                 request.name(),
                 request.phoneNumber(),
                 request.postalCode(),

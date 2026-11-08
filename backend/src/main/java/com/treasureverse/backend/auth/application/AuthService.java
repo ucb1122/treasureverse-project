@@ -1,10 +1,8 @@
 package com.treasureverse.backend.auth.application;
 
 import com.treasureverse.backend.auth.domain.TokenProviderPort;
+import com.treasureverse.backend.auth.domain.TokenResult;
 import com.treasureverse.backend.auth.domain.TokenStorePort;
-import com.treasureverse.backend.auth.presentation.AuthToken;
-import com.treasureverse.backend.auth.presentation.LoginRequest;
-import com.treasureverse.backend.auth.presentation.SignupRequest;
 import com.treasureverse.backend.common.exception.BusinessException;
 import com.treasureverse.backend.common.exception.ErrorCode;
 import com.treasureverse.backend.member.domain.Member;
@@ -37,7 +35,7 @@ public class AuthService {
     return !members.existsByUsername(username);
   }
 
-  public void signup(SignupRequest r) {
+  public void signup(SignupCommand r) {
     if (!available(r.username())) throw new BusinessException(ErrorCode.CONFLICT);
     members.save(
         new Member(
@@ -51,7 +49,7 @@ public class AuthService {
   }
 
   @Transactional(readOnly = true)
-  public AuthToken login(LoginRequest r) {
+  public TokenResult login(LoginCommand r) {
     Member m =
         members
             .findByUsername(r.username())
@@ -61,7 +59,7 @@ public class AuthService {
     return issue(m);
   }
 
-  public AuthToken refresh(String refreshToken) {
+  public TokenResult refresh(String refreshToken) {
     Claims c = jwt.parse(refreshToken);
     if (!"refresh".equals(c.get("type", String.class)) || !tokens.consumeRefresh(c.getId()))
       throw new BusinessException(ErrorCode.INVALID_REQUEST);
@@ -77,8 +75,8 @@ public class AuthService {
     tokens.blacklistAccess(c.getId(), jwt.remaining(c));
   }
 
-  private AuthToken issue(Member m) {
-    AuthToken t = jwt.create(m);
+  private TokenResult issue(Member m) {
+    TokenResult t = jwt.create(m);
     tokens.saveRefresh(
         jwt.parse(t.refreshToken()).getId(),
         m.getId().toString(),

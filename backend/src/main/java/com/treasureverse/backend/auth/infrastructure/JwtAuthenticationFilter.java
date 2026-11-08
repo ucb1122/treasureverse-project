@@ -2,6 +2,8 @@ package com.treasureverse.backend.auth.infrastructure;
 
 import com.treasureverse.backend.auth.domain.TokenProviderPort;
 import com.treasureverse.backend.auth.domain.TokenStorePort;
+import com.treasureverse.backend.common.security.CurrentMember;
+import com.treasureverse.backend.member.domain.Role;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -37,7 +39,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             && !tokens.isBlacklisted(claims.getId())) {
           var auth =
               new UsernamePasswordAuthenticationToken(
-                  claims.getSubject(),
+                  new CurrentMember(
+                      Long.valueOf(claims.getSubject()),
+                      claims.get("username", String.class),
+                      Role.valueOf(claims.get("role", String.class))),
                   null,
                   List.of(new SimpleGrantedAuthority("ROLE_" + claims.get("role", String.class))));
           SecurityContextHolder.getContext().setAuthentication(auth);

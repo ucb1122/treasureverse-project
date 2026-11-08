@@ -16,21 +16,21 @@ public class MemberService {
     this.memberRepository = memberRepository;
   }
 
-  public Member getMyProfile(String username) {
+  public Member getMyProfile(Long memberId) {
     return memberRepository
-        .findByUsername(username)
+        .findById(memberId)
         .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND));
   }
 
   @Transactional
   public Member updateMyProfile(
-      String username,
+      Long memberId,
       String name,
       String phoneNumber,
       String postalCode,
       String address,
       String addressDetail) {
-    Member member = getMyProfile(username);
+    Member member = getMyProfile(memberId);
     member.updateProfile(name, phoneNumber, postalCode, address, addressDetail);
     return member;
   }

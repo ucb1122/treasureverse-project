@@ -16,3 +16,7 @@ app:
     secret: treasureverse-test-secret-key-that-is-long-enough-for-hmac-sha
     access-token-seconds: 1800
     refresh-token-seconds: 1209600
+  storage:
+    region: ap-northeast-2
+    bucket: treasureverse-test
+    max-image-bytes: 10485760

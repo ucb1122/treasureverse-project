@@ -15,20 +15,35 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-    private final JwtTokenProvider jwt;
-    private final TokenStore tokens;
-    public JwtAuthenticationFilter(JwtTokenProvider jwt, TokenStore tokens) { this.jwt = jwt; this.tokens = tokens; }
-    @Override protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
-        String header = request.getHeader("Authorization");
-        if (header != null && header.startsWith("Bearer ")) {
-            try {
-                Claims claims = jwt.parse(header.substring(7));
-                if ("access".equals(claims.get("type", String.class)) && !tokens.isBlacklisted(claims.getId())) {
-                    var auth = new UsernamePasswordAuthenticationToken(claims.getSubject(), null, List.of(new SimpleGrantedAuthority("ROLE_" + claims.get("role", String.class))));
-                    SecurityContextHolder.getContext().setAuthentication(auth);
-                }
-            } catch (RuntimeException ignored) { SecurityContextHolder.clearContext(); }
+  private final JwtTokenProvider jwt;
+  private final TokenStore tokens;
+
+  public JwtAuthenticationFilter(JwtTokenProvider jwt, TokenStore tokens) {
+    this.jwt = jwt;
+    this.tokens = tokens;
+  }
+
+  @Override
+  protected void doFilterInternal(
+      HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+      throws ServletException, IOException {
+    String header = request.getHeader("Authorization");
+    if (header != null && header.startsWith("Bearer ")) {
+      try {
+        Claims claims = jwt.parse(header.substring(7));
+        if ("access".equals(claims.get("type", String.class))
+            && !tokens.isBlacklisted(claims.getId())) {
+          var auth =
+              new UsernamePasswordAuthenticationToken(
+                  claims.getSubject(),
+                  null,
+                  List.of(new SimpleGrantedAuthority("ROLE_" + claims.get("role", String.class))));
+          SecurityContextHolder.getContext().setAuthentication(auth);
         }
-        chain.doFilter(request, response);
+      } catch (RuntimeException ignored) {
+        SecurityContextHolder.clearContext();
+      }
     }
+    chain.doFilter(request, response);
+  }
 }

@@ -8,11 +8,13 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class SwaggerConfig {
 
-    @Bean
-    public OpenAPI treasureverseOpenApi() {
-        return new OpenAPI().info(new Info()
+  @Bean
+  public OpenAPI treasureverseOpenApi() {
+    return new OpenAPI()
+        .info(
+            new Info()
                 .title("Treasureverse API")
                 .version("v1")
                 .description("Treasureverse collection platform API"));
-    }
+  }
 }

@@ -12,9 +12,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/health")
 public class HealthController {
 
-    @GetMapping
-    @Operation(summary = "Application health check")
-    public ResponseEntity<ApiResponse<Map<String, String>>> health() {
-        return ResponseEntity.ok(ApiResponse.success(Map.of("status", "UP")));
-    }
+  @GetMapping
+  @Operation(summary = "Application health check")
+  public ResponseEntity<ApiResponse<Map<String, String>>> health() {
+    return ResponseEntity.ok(ApiResponse.success(Map.of("status", "UP")));
+  }
 }

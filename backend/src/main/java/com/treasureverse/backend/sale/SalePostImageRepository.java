@@ -1,8 +1,0 @@
-package com.treasureverse.backend.sale;
-
-import java.util.List;
-import org.springframework.data.jpa.repository.JpaRepository;
-
-public interface SalePostImageRepository extends JpaRepository<SalePostImage, Long> {
-  List<SalePostImage> findBySalePostIdOrderBySortOrder(Long salePostId);
-}

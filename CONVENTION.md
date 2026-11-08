@@ -8,7 +8,7 @@ This convention makes every change traceable from its request to deployment.
 - One branch and one pull request (PR) address one Issue by default.
 - Use the same Issue number in the branch name, every related commit, and the PR title.
 - Do not push directly to `develop` or `main`.
-- Merge only after required review and CI checks pass.
+- Merge only after self-review and required CI checks pass.
 - Do not commit credentials, API keys, `.env` files, production data, or generated build artifacts.
 
 ### Exceptions
@@ -160,7 +160,7 @@ Format:
 [<type>] #<issue-number> <description>
 ```
 
-The PR body must include `Closes #<issue-number>`. GitHub then closes the Issue automatically after the PR is merged into its base branch.
+The PR body must include `Closes #<issue-number>`. GitHub automatically closes the Issue only when that PR is merged into the repository's default branch (`main`). Because ordinary work merges into `develop`, explicitly close the Issue after its PR is merged.
 
 ### 5.2 PR template
 
@@ -204,7 +204,7 @@ Closes #<issue-number>
 
 ## 6. Review and merge
 
-- At least one reviewer other than the author must approve a normal PR.
+- In this single-developer project, the author performs a self-review; external approval is not required.
 - All required CI checks must pass; do not merge a failing or conflicted PR.
 - Resolve all review conversations before merge, unless the reviewer explicitly accepts deferral.
 - New substantive commits after approval require review again when repository settings enforce dismissal; otherwise request re-review as appropriate.

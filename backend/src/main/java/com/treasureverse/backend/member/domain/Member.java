@@ -74,4 +74,33 @@ public class Member extends BaseTimeEntity {
   public Role getRole() {
     return role;
   }
+
+  public String getName() {
+    return name;
+  }
+
+  public String getPhoneNumber() {
+    return phoneNumber;
+  }
+
+  public String getPostalCode() {
+    return postalCode;
+  }
+
+  public String getAddress() {
+    return address;
+  }
+
+  public String getAddressDetail() {
+    return addressDetail;
+  }
+
+  public void updateProfile(
+      String name, String phoneNumber, String postalCode, String address, String addressDetail) {
+    this.name = name;
+    this.phoneNumber = phoneNumber;
+    this.postalCode = postalCode;
+    this.address = address;
+    this.addressDetail = addressDetail;
+  }
 }

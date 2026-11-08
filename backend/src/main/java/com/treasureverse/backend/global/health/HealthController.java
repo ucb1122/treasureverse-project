@@ -1,6 +1,6 @@
-package com.treasureverse.backend.common.health;
+package com.treasureverse.backend.global.health;
 
-import com.treasureverse.backend.common.response.ApiResponse;
+import com.treasureverse.backend.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import java.util.Map;
 import org.springframework.http.ResponseEntity;

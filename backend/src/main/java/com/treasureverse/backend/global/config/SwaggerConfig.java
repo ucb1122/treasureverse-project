@@ -1,4 +1,4 @@
-package com.treasureverse.backend.common.config;
+package com.treasureverse.backend.global.config;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;

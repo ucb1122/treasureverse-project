@@ -1,6 +1,6 @@
 package com.treasureverse.backend.purchase.domain;
 
-import com.treasureverse.backend.common.entity.BaseTimeEntity;
+import com.treasureverse.backend.global.entity.BaseTimeEntity;
 import com.treasureverse.backend.member.domain.Member;
 import jakarta.persistence.*;
 import java.math.BigDecimal;

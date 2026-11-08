@@ -1,7 +1,7 @@
 package com.treasureverse.backend.purchase.application;
 
-import com.treasureverse.backend.common.exception.BusinessException;
-import com.treasureverse.backend.common.exception.ErrorCode;
+import com.treasureverse.backend.global.exception.BusinessException;
+import com.treasureverse.backend.global.exception.ErrorCode;
 import com.treasureverse.backend.member.domain.MemberRepositoryPort;
 import com.treasureverse.backend.purchase.domain.PurchasePost;
 import com.treasureverse.backend.purchase.domain.PurchasePostRepositoryPort;

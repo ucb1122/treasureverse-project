@@ -1,7 +1,7 @@
 package com.treasureverse.backend.sale.application;
 
-import com.treasureverse.backend.common.exception.BusinessException;
-import com.treasureverse.backend.common.exception.ErrorCode;
+import com.treasureverse.backend.global.exception.BusinessException;
+import com.treasureverse.backend.global.exception.ErrorCode;
 import com.treasureverse.backend.sale.domain.SalePostImage;
 import com.treasureverse.backend.sale.domain.SalePostImageRepositoryPort;
 import org.springframework.stereotype.Service;

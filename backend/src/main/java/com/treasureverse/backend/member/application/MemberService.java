@@ -1,7 +1,7 @@
 package com.treasureverse.backend.member.application;
 
-import com.treasureverse.backend.common.exception.BusinessException;
-import com.treasureverse.backend.common.exception.ErrorCode;
+import com.treasureverse.backend.global.exception.BusinessException;
+import com.treasureverse.backend.global.exception.ErrorCode;
 import com.treasureverse.backend.member.domain.Member;
 import com.treasureverse.backend.member.domain.MemberRepositoryPort;
 import org.springframework.stereotype.Service;

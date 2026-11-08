@@ -1,7 +1,7 @@
 package com.treasureverse.backend.member.presentation;
 
-import com.treasureverse.backend.common.response.ApiResponse;
-import com.treasureverse.backend.common.security.CurrentMember;
+import com.treasureverse.backend.global.response.ApiResponse;
+import com.treasureverse.backend.global.security.CurrentMember;
 import com.treasureverse.backend.member.application.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;

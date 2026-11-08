@@ -1,4 +1,4 @@
-package com.treasureverse.backend.common.entity;
+package com.treasureverse.backend.global.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;

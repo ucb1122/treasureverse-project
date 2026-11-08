@@ -10,3 +10,9 @@ spring:
   docker:
     compose:
       enabled: false
+
+app:
+  jwt:
+    secret: treasureverse-test-secret-key-that-is-long-enough-for-hmac-sha
+    access-token-seconds: 1800
+    refresh-token-seconds: 1209600

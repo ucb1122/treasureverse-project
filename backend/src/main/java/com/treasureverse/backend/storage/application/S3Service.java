@@ -1,6 +1,6 @@
 package com.treasureverse.backend.storage.application;
 
-import com.treasureverse.backend.common.exception.*;
+import com.treasureverse.backend.global.exception.*;
 import com.treasureverse.backend.storage.domain.ImageUploadPort;
 import com.treasureverse.backend.storage.presentation.PresignRequest;
 import java.util.*;

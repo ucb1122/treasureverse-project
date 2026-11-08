@@ -4,7 +4,7 @@ import com.treasureverse.backend.auth.application.AuthService;
 import com.treasureverse.backend.auth.application.LoginCommand;
 import com.treasureverse.backend.auth.application.SignupCommand;
 import com.treasureverse.backend.auth.domain.TokenResult;
-import com.treasureverse.backend.common.response.ApiResponse;
+import com.treasureverse.backend.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import java.util.Map;

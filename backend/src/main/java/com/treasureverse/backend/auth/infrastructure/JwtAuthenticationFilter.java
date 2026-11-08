@@ -2,7 +2,7 @@ package com.treasureverse.backend.auth.infrastructure;
 
 import com.treasureverse.backend.auth.domain.TokenProviderPort;
 import com.treasureverse.backend.auth.domain.TokenStorePort;
-import com.treasureverse.backend.common.security.CurrentMember;
+import com.treasureverse.backend.global.security.CurrentMember;
 import com.treasureverse.backend.member.domain.Role;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;

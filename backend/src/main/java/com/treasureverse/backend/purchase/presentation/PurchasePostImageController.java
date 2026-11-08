@@ -1,7 +1,7 @@
 package com.treasureverse.backend.purchase.presentation;
 
-import com.treasureverse.backend.common.response.ApiResponse;
-import com.treasureverse.backend.common.security.CurrentMember;
+import com.treasureverse.backend.global.response.ApiResponse;
+import com.treasureverse.backend.global.security.CurrentMember;
 import com.treasureverse.backend.purchase.application.PurchasePostImageService;
 import com.treasureverse.backend.purchase.presentation.request.CreatePurchasePostImageRequest;
 import jakarta.validation.Valid;

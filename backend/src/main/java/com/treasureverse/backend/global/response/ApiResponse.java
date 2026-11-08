@@ -1,4 +1,4 @@
-package com.treasureverse.backend.common.response;
+package com.treasureverse.backend.global.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 

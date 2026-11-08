@@ -1,6 +1,6 @@
 package com.treasureverse.backend.purchase.domain;
 
-import com.treasureverse.backend.common.entity.BaseTimeEntity;
+import com.treasureverse.backend.global.entity.BaseTimeEntity;
 import jakarta.persistence.*;
 
 @Entity

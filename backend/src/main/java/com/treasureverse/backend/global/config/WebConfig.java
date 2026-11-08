@@ -1,4 +1,4 @@
-package com.treasureverse.backend.common.config;
+package com.treasureverse.backend.global.config;
 
 import java.util.List;
 import org.springframework.boot.context.properties.ConfigurationProperties;

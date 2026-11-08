@@ -1,4 +1,4 @@
-package com.treasureverse.backend.common.exception;
+package com.treasureverse.backend.global.exception;
 
 public class BusinessException extends RuntimeException {
 

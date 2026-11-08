@@ -1,7 +1,7 @@
 package com.treasureverse.backend.sale.presentation;
 
-import com.treasureverse.backend.common.response.ApiResponse;
-import com.treasureverse.backend.common.security.CurrentMember;
+import com.treasureverse.backend.global.response.ApiResponse;
+import com.treasureverse.backend.global.security.CurrentMember;
 import com.treasureverse.backend.sale.application.SalePostImageService;
 import com.treasureverse.backend.sale.application.SalePostService;
 import com.treasureverse.backend.sale.presentation.request.CreateSalePostImageRequest;

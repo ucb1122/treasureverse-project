@@ -1,6 +1,6 @@
 package com.treasureverse.backend.storage.presentation;
 
-import com.treasureverse.backend.common.response.ApiResponse;
+import com.treasureverse.backend.global.response.ApiResponse;
 import com.treasureverse.backend.storage.application.S3Service;
 import jakarta.validation.Valid;
 import java.util.Map;

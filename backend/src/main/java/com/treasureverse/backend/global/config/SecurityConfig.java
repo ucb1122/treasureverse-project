@@ -1,4 +1,4 @@
-package com.treasureverse.backend.common.config;
+package com.treasureverse.backend.global.config;
 
 import com.treasureverse.backend.auth.infrastructure.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;

@@ -1,4 +1,4 @@
-package com.treasureverse.backend.common.security;
+package com.treasureverse.backend.global.security;
 
 import com.treasureverse.backend.member.domain.Role;
 

@@ -10,18 +10,19 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @ConfigurationProperties(prefix = "app.cors")
 public class WebConfig implements WebMvcConfigurer {
 
-    private List<String> allowedOrigins = List.of();
+  private List<String> allowedOrigins = List.of();
 
-    public void setAllowedOrigins(List<String> allowedOrigins) {
-        this.allowedOrigins = List.copyOf(allowedOrigins);
-    }
+  public void setAllowedOrigins(List<String> allowedOrigins) {
+    this.allowedOrigins = List.copyOf(allowedOrigins);
+  }
 
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/api/**")
-                .allowedOrigins(allowedOrigins.toArray(String[]::new))
-                .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
-                .allowedHeaders("*")
-                .allowCredentials(true);
-    }
+  @Override
+  public void addCorsMappings(CorsRegistry registry) {
+    registry
+        .addMapping("/api/**")
+        .allowedOrigins(allowedOrigins.toArray(String[]::new))
+        .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
+        .allowedHeaders("*")
+        .allowCredentials(true);
+  }
 }

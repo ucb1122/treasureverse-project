@@ -15,32 +15,37 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+  private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    @ExceptionHandler(BusinessException.class)
-    public ResponseEntity<ErrorResponse> handleBusinessException(BusinessException exception) {
-        ErrorCode errorCode = exception.getErrorCode();
-        return ResponseEntity.status(errorCode.getStatus()).body(ErrorResponse.of(errorCode));
-    }
+  @ExceptionHandler(BusinessException.class)
+  public ResponseEntity<ErrorResponse> handleBusinessException(BusinessException exception) {
+    ErrorCode errorCode = exception.getErrorCode();
+    return ResponseEntity.status(errorCode.getStatus()).body(ErrorResponse.of(errorCode));
+  }
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException exception) {
-        Map<String, String> fieldErrors = new LinkedHashMap<>();
-        for (FieldError fieldError : exception.getBindingResult().getFieldErrors()) {
-            fieldErrors.putIfAbsent(fieldError.getField(), fieldError.getDefaultMessage());
-        }
-        return ResponseEntity.badRequest().body(ErrorResponse.of(ErrorCode.INVALID_REQUEST, fieldErrors));
+  @ExceptionHandler(MethodArgumentNotValidException.class)
+  public ResponseEntity<ErrorResponse> handleValidationException(
+      MethodArgumentNotValidException exception) {
+    Map<String, String> fieldErrors = new LinkedHashMap<>();
+    for (FieldError fieldError : exception.getBindingResult().getFieldErrors()) {
+      fieldErrors.putIfAbsent(fieldError.getField(), fieldError.getDefaultMessage());
     }
+    return ResponseEntity.badRequest()
+        .body(ErrorResponse.of(ErrorCode.INVALID_REQUEST, fieldErrors));
+  }
 
-    @ExceptionHandler({MethodArgumentTypeMismatchException.class, HttpMessageNotReadableException.class})
-    public ResponseEntity<ErrorResponse> handleInvalidTypeException(Exception exception) {
-        return ResponseEntity.badRequest().body(ErrorResponse.of(ErrorCode.INVALID_TYPE));
-    }
+  @ExceptionHandler({
+    MethodArgumentTypeMismatchException.class,
+    HttpMessageNotReadableException.class
+  })
+  public ResponseEntity<ErrorResponse> handleInvalidTypeException(Exception exception) {
+    return ResponseEntity.badRequest().body(ErrorResponse.of(ErrorCode.INVALID_TYPE));
+  }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleUnexpectedException(Exception exception) {
-        log.error("Unexpected server error", exception);
-        ErrorCode errorCode = ErrorCode.INTERNAL_SERVER_ERROR;
-        return ResponseEntity.status(errorCode.getStatus()).body(ErrorResponse.of(errorCode));
-    }
+  @ExceptionHandler(Exception.class)
+  public ResponseEntity<ErrorResponse> handleUnexpectedException(Exception exception) {
+    log.error("Unexpected server error", exception);
+    ErrorCode errorCode = ErrorCode.INTERNAL_SERVER_ERROR;
+    return ResponseEntity.status(errorCode.getStatus()).body(ErrorResponse.of(errorCode));
+  }
 }

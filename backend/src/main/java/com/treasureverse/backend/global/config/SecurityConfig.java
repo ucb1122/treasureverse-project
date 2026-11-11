@@ -3,6 +3,7 @@ package com.treasureverse.backend.global.config;
 import com.treasureverse.backend.auth.infrastructure.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -31,6 +32,11 @@ public class SecurityConfig {
                         "/swagger-ui/**",
                         "/swagger-ui.html",
                         "/v3/api-docs/**")
+                    .permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/v1/sale-posts", "/api/v1/sale-posts/**")
+                    .permitAll()
+                    .requestMatchers(
+                        HttpMethod.GET, "/api/v1/purchase-posts", "/api/v1/purchase-posts/**")
                     .permitAll()
                     .anyRequest()
                     .authenticated())

@@ -50,6 +50,10 @@ public class SalePost extends BaseTimeEntity {
     return title;
   }
 
+  public String getContent() {
+    return content;
+  }
+
   public BigDecimal getPrice() {
     return price;
   }

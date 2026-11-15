@@ -2,6 +2,7 @@ package com.treasureverse.backend.sale.infrastructure;
 
 import com.treasureverse.backend.sale.domain.SalePostImage;
 import com.treasureverse.backend.sale.domain.SalePostImageRepositoryPort;
+import java.util.List;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -20,5 +21,10 @@ public class SalePostImageRepositoryAdapter implements SalePostImageRepositoryPo
   @Override
   public SalePostImage save(SalePostImage image) {
     return repository.save(image);
+  }
+
+  @Override
+  public List<SalePostImage> findBySalePostId(Long salePostId) {
+    return repository.findBySalePostIdOrderBySortOrderAsc(salePostId);
   }
 }

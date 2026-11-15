@@ -8,6 +8,7 @@ import com.treasureverse.backend.sale.presentation.request.CreateSalePostImageRe
 import com.treasureverse.backend.sale.presentation.request.CreateSalePostRequest;
 import com.treasureverse.backend.sale.presentation.request.UpdateSalePostRequest;
 import com.treasureverse.backend.sale.presentation.response.SalePostResponse;
+import com.treasureverse.backend.storage.application.S3Service;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
@@ -26,11 +27,15 @@ import org.springframework.web.bind.annotation.RestController;
 public class SalePostController {
   private final SalePostService salePostService;
   private final SalePostImageService salePostImageService;
+  private final S3Service storageService;
 
   public SalePostController(
-      SalePostService salePostService, SalePostImageService salePostImageService) {
+      SalePostService salePostService,
+      SalePostImageService salePostImageService,
+      S3Service storageService) {
     this.salePostService = salePostService;
     this.salePostImageService = salePostImageService;
+    this.storageService = storageService;
   }
 
   @PostMapping
@@ -38,7 +43,7 @@ public class SalePostController {
       @Valid @RequestBody CreateSalePostRequest request,
       @AuthenticationPrincipal CurrentMember currentMember) {
     return ApiResponse.success(
-        SalePostResponse.from(
+        toResponse(
             salePostService.create(
                 currentMember.id(), request.title(), request.content(), request.price())));
   }
@@ -54,13 +59,12 @@ public class SalePostController {
 
   @GetMapping
   public ApiResponse<List<SalePostResponse>> list() {
-    return ApiResponse.success(
-        salePostService.findAll().stream().map(SalePostResponse::from).toList());
+    return ApiResponse.success(salePostService.findAll().stream().map(this::toResponse).toList());
   }
 
   @GetMapping("/{id}")
   public ApiResponse<SalePostResponse> get(@PathVariable Long id) {
-    return ApiResponse.success(SalePostResponse.from(salePostService.findById(id)));
+    return ApiResponse.success(toResponse(salePostService.findById(id)));
   }
 
   @PutMapping("/{id}")
@@ -69,7 +73,7 @@ public class SalePostController {
       @Valid @RequestBody UpdateSalePostRequest request,
       @AuthenticationPrincipal CurrentMember currentMember) {
     return ApiResponse.success(
-        SalePostResponse.from(
+        toResponse(
             salePostService.update(
                 id,
                 currentMember.id(),
@@ -84,5 +88,13 @@ public class SalePostController {
       @PathVariable Long id, @AuthenticationPrincipal CurrentMember currentMember) {
     salePostService.delete(id, currentMember.id());
     return ResponseEntity.noContent().build();
+  }
+
+  private SalePostResponse toResponse(com.treasureverse.backend.sale.domain.SalePost salePost) {
+    return SalePostResponse.from(
+        salePost,
+        salePostImageService.findObjectKeys(salePost.getId()).stream()
+            .map(storageService::viewUrl)
+            .toList());
   }
 }

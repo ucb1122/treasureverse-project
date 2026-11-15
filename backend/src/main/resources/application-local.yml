@@ -17,3 +17,11 @@ spring:
   docker:
     compose:
       enabled: false
+
+app:
+  storage:
+    bucket: ${MINIO_BUCKET:treasureverse-local}
+    endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+    access-key: ${MINIO_ROOT_USER:minioadmin}
+    secret-key: ${MINIO_ROOT_PASSWORD:minioadmin}
+    path-style-access: true

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   createSalePost,
   getPurchasePosts,
+  getSalePost,
   getSalePosts,
   login,
   signup,
@@ -57,11 +58,18 @@ const starField = Array.from({ length: 26 }, (_, index) => index);
 const formatPrice = (price) =>
   new Intl.NumberFormat("ko-KR").format(price ?? 0);
 
-function ListingCard({ item, isFallback }) {
+function ListingCard({ item, isFallback, onSelect }) {
   const isPurchase = item.type === "구매 희망";
   return (
-    <article className="listing-card">
+    <article className="listing-card" onClick={() => onSelect(item)}>
       <div className={`listing-art ${item.accent ?? "violet"}`}>
+        {item.imageUrls?.[0] && (
+          <img
+            className="listing-image"
+            src={item.imageUrls[0]}
+            alt={item.title}
+          />
+        )}
         <span className="listing-tag">
           {item.tag ?? (isPurchase ? "구매 희망" : "판매 중")}
         </span>
@@ -85,23 +93,87 @@ function ListingCard({ item, isFallback }) {
   );
 }
 
-function LoginPanel({ onClose, onLogin, onSignup }) {
+function ListingDetail({ item, onBack }) {
+  return (
+    <main className="detail-page">
+      <header className="detail-header">
+        <a
+          className="wordmark"
+          href="/"
+          onClick={(event) => {
+            event.preventDefault();
+            onBack();
+          }}
+        >
+          TREASURE<span>VERSE</span>
+        </a>
+        <button className="back-button" type="button" onClick={onBack}>
+          ← 마켓으로 돌아가기
+        </button>
+      </header>
+      <section className="listing-detail detail-hero">
+        <div className="detail-gallery" aria-label="판매 이미지">
+          {item.imageUrls?.length ? (
+            item.imageUrls.map((url) => (
+              <img key={url} src={url} alt={item.title} />
+            ))
+          ) : (
+            <div className="detail-placeholder">◇</div>
+          )}
+        </div>
+        <div className="detail-copy">
+          <span className="eyebrow">{item.type ?? "판매"}</span>
+          <h2>{item.title}</h2>
+          <strong>{formatPrice(item.price ?? item.desiredPrice)}원</strong>
+          <p className="detail-meta">판매자와 안전하게 거래하세요.</p>
+          <button className="primary-button detail-action" type="button">
+            문의하기
+          </button>
+        </div>
+      </section>
+      <section className="detail-description">
+        <span className="eyebrow">DESCRIPTION</span>
+        <h3>판매자 설명</h3>
+        <p>{item.content ?? "등록된 상세 설명이 없습니다."}</p>
+      </section>
+    </main>
+  );
+}
+
+function ErrorModal({ message, onClose }) {
+  return (
+    <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
+      <section
+        className="error-modal"
+        role="alertdialog"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <span className="error-icon">!</span>
+        <h2>요청을 완료하지 못했습니다</h2>
+        <p>{message || "잠시 후 다시 시도해 주세요."}</p>
+        <button className="primary-button" type="button" onClick={onClose}>
+          확인
+        </button>
+      </section>
+    </div>
+  );
+}
+
+function LoginPanel({ onClose, onLogin, onSignup, onError }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function submit(event) {
     event.preventDefault();
     setLoading(true);
-    setError("");
     try {
       const token = await login(username, password);
       localStorage.setItem("treasureverse.accessToken", token.accessToken);
       onLogin(username);
       onClose();
     } catch (requestError) {
-      setError(requestError.message);
+      onError(requestError.message);
     } finally {
       setLoading(false);
     }
@@ -141,7 +213,6 @@ function LoginPanel({ onClose, onLogin, onSignup }) {
             required
           />
         </label>
-        {error && <p className="form-error">{error}</p>}
         <button className="primary-button" disabled={loading}>
           {loading ? "로그인 중…" : "로그인"}
         </button>
@@ -156,7 +227,7 @@ function LoginPanel({ onClose, onLogin, onSignup }) {
   );
 }
 
-function SignupPanel({ onClose, onComplete }) {
+function SignupPanel({ onClose, onComplete, onError }) {
   const [form, setForm] = useState({
     username: "",
     password: "",
@@ -166,7 +237,6 @@ function SignupPanel({ onClose, onComplete }) {
     address: "",
     addressDetail: "",
   });
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const update = (event) =>
     setForm((previous) => ({
@@ -177,12 +247,11 @@ function SignupPanel({ onClose, onComplete }) {
   async function submit(event) {
     event.preventDefault();
     setLoading(true);
-    setError("");
     try {
       await signup(form);
       onComplete(form.username);
     } catch (requestError) {
-      setError(requestError.message);
+      onError(requestError.message);
     } finally {
       setLoading(false);
     }
@@ -216,9 +285,14 @@ function SignupPanel({ onClose, onComplete }) {
               name="username"
               value={form.username}
               onChange={update}
-              pattern="[a-zA-Z0-9_]{4,30}"
+              pattern="[a-zA-Z0-9._@-]{4,30}"
+              title="4~30자의 영문, 숫자, 밑줄(_), 점(.), 하이픈(-), 골뱅이(@)만 사용할 수 있습니다."
+              placeholder="아이디 또는 이메일 형태"
               required
             />
+            <small className="field-hint">
+              4~30자 · 예: collector_01 또는 name@example.com
+            </small>
           </label>
           <label>
             이름
@@ -230,10 +304,12 @@ function SignupPanel({ onClose, onComplete }) {
               name="password"
               type="password"
               minLength="8"
+              title="비밀번호는 8자 이상 입력해 주세요."
               value={form.password}
               onChange={update}
               required
             />
+            <small className="field-hint">8자 이상 입력해 주세요.</small>
           </label>
           <label>
             전화번호
@@ -271,7 +347,6 @@ function SignupPanel({ onClose, onComplete }) {
             onChange={update}
           />
         </label>
-        {error && <p className="form-error">{error}</p>}
         <button className="primary-button" disabled={loading}>
           {loading ? "가입 중…" : "회원가입"}
         </button>
@@ -280,10 +355,9 @@ function SignupPanel({ onClose, onComplete }) {
   );
 }
 
-function SellPanel({ onClose, onCreated }) {
+function SellPanel({ onClose, onCreated, onError }) {
   const [form, setForm] = useState({ title: "", content: "", price: "" });
   const [file, setFile] = useState(null);
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const update = (event) =>
     setForm((previous) => ({
@@ -294,7 +368,6 @@ function SellPanel({ onClose, onCreated }) {
   async function submit(event) {
     event.preventDefault();
     setLoading(true);
-    setError("");
     try {
       const salePost = await createSalePost({
         ...form,
@@ -303,7 +376,7 @@ function SellPanel({ onClose, onCreated }) {
       if (file) await uploadSalePostImage(salePost.id, file);
       onCreated({ ...salePost, type: "판매" });
     } catch (requestError) {
-      setError(requestError.message);
+      onError(requestError.message);
     } finally {
       setLoading(false);
     }
@@ -373,7 +446,6 @@ function SellPanel({ onClose, onCreated }) {
             {file.name} · {(file.size / 1024 / 1024).toFixed(1)} MB
           </p>
         )}
-        {error && <p className="form-error">{error}</p>}
         <button className="primary-button" disabled={loading}>
           {loading ? "등록 중…" : "판매글 등록"}
         </button>
@@ -391,6 +463,8 @@ export default function App() {
   const [loginOpen, setLoginOpen] = useState(false);
   const [signupOpen, setSignupOpen] = useState(false);
   const [sellOpen, setSellOpen] = useState(false);
+  const [selectedListing, setSelectedListing] = useState(null);
+  const [errorMessage, setErrorMessage] = useState("");
   const [memberName, setMemberName] = useState(
     localStorage.getItem("treasureverse.memberName") ?? "",
   );
@@ -403,8 +477,34 @@ export default function App() {
           purchases.map((item) => ({ ...item, type: "구매 희망" })),
         );
       })
-      .catch((error) => setApiError(error.message))
+      .catch((error) => {
+        setApiError(error.message);
+        setErrorMessage(error.message);
+      })
       .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    async function syncDetailRoute() {
+      const match = window.location.pathname.match(/^\/sale\/(\d+)$/);
+      if (!match) {
+        setSelectedListing(null);
+        return;
+      }
+
+      try {
+        const salePost = await getSalePost(match[1]);
+        setSelectedListing({ ...salePost, type: "판매" });
+      } catch (error) {
+        setErrorMessage(error.message);
+        window.history.replaceState({}, "", "/");
+        setSelectedListing(null);
+      }
+    }
+
+    syncDetailRoute();
+    window.addEventListener("popstate", syncDetailRoute);
+    return () => window.removeEventListener("popstate", syncDetailRoute);
   }, []);
 
   const listings = useMemo(
@@ -434,6 +534,30 @@ export default function App() {
     setSalePosts((previous) => [salePost, ...previous]);
     setSellOpen(false);
   }
+
+  function openListing(item) {
+    setSelectedListing(item);
+    window.history.pushState({ saleId: item.id }, "", `/sale/${item.id}`);
+    window.scrollTo(0, 0);
+  }
+
+  function closeListing() {
+    setSelectedListing(null);
+    window.history.pushState({}, "", "/");
+  }
+
+  if (selectedListing)
+    return (
+      <div className="app-shell">
+        <ListingDetail item={selectedListing} onBack={closeListing} />
+        {errorMessage && (
+          <ErrorModal
+            message={errorMessage}
+            onClose={() => setErrorMessage("")}
+          />
+        )}
+      </div>
+    );
 
   return (
     <div className="app-shell">
@@ -573,6 +697,7 @@ export default function App() {
                     item={item}
                     key={item.id}
                     isFallback={Boolean(apiError || listings.length === 0)}
+                    onSelect={openListing}
                   />
                 ))}
               </div>
@@ -620,6 +745,7 @@ export default function App() {
         <LoginPanel
           onClose={() => setLoginOpen(false)}
           onLogin={handleLogin}
+          onError={setErrorMessage}
           onSignup={() => {
             setLoginOpen(false);
             setSignupOpen(true);
@@ -630,12 +756,20 @@ export default function App() {
         <SignupPanel
           onClose={() => setSignupOpen(false)}
           onComplete={handleSignupComplete}
+          onError={setErrorMessage}
         />
       )}
       {sellOpen && (
         <SellPanel
           onClose={() => setSellOpen(false)}
           onCreated={handleSaleCreated}
+          onError={setErrorMessage}
+        />
+      )}
+      {errorMessage && (
+        <ErrorModal
+          message={errorMessage}
+          onClose={() => setErrorMessage("")}
         />
       )}
     </div>

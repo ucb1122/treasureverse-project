@@ -1,12 +1,12 @@
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080/api/v1";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api/v1";
 
 async function request(path, options = {}) {
   const token = localStorage.getItem("treasureverse.accessToken");
+  const isFormData = options.body instanceof FormData;
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
     headers: {
-      "Content-Type": "application/json",
+      ...(isFormData ? {} : { "Content-Type": "application/json" }),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...options.headers,
     },
@@ -24,6 +24,10 @@ async function request(path, options = {}) {
 
 export function getSalePosts() {
   return request("/sale-posts");
+}
+
+export function getSalePost(salePostId) {
+  return request(`/sale-posts/${salePostId}`);
 }
 
 export function getPurchasePosts() {
@@ -57,18 +61,26 @@ export async function uploadSalePostImage(salePostId, file) {
     body: JSON.stringify({ contentType: file.type, size: file.size }),
   });
 
-  const uploadResponse = await fetch(uploadUrl, {
-    method: "PUT",
-    headers: { "Content-Type": file.type },
-    body: file,
-  });
-
-  if (!uploadResponse.ok) {
-    throw new Error("이미지를 저장하지 못했습니다. S3 설정을 확인해 주세요.");
+  let objectKey = key;
+  try {
+    const uploadResponse = await fetch(uploadUrl, {
+      method: "PUT",
+      headers: { "Content-Type": file.type },
+      body: file,
+    });
+    if (!uploadResponse.ok) throw new Error("Direct upload failed");
+  } catch {
+    const formData = new FormData();
+    formData.append("file", file);
+    const uploaded = await request("/images/upload", {
+      method: "POST",
+      body: formData,
+    });
+    objectKey = uploaded.key;
   }
 
   return request(`/sale-posts/${salePostId}/images`, {
     method: "POST",
-    body: JSON.stringify({ objectKey: key }),
+    body: JSON.stringify({ objectKey }),
   });
 }

@@ -4,6 +4,7 @@ import com.treasureverse.backend.global.exception.BusinessException;
 import com.treasureverse.backend.global.exception.ErrorCode;
 import com.treasureverse.backend.sale.domain.SalePostImage;
 import com.treasureverse.backend.sale.domain.SalePostImageRepositoryPort;
+import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,5 +25,12 @@ public class SalePostImageService {
     if (!post.sellerId().equals(memberId)) throw new BusinessException(ErrorCode.CONFLICT);
     int order = Math.toIntExact(imageRepository.countBySalePostId(salePostId));
     imageRepository.save(new SalePostImage(post, objectKey, order));
+  }
+
+  @Transactional(readOnly = true)
+  public List<String> findObjectKeys(Long salePostId) {
+    return imageRepository.findBySalePostId(salePostId).stream()
+        .map(SalePostImage::getObjectKey)
+        .toList();
   }
 }

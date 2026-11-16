@@ -30,12 +30,12 @@ public class S3Config {
   @Bean
   S3Presigner s3Presigner(
       @Value("${app.storage.region}") String region,
-      @Value("${app.storage.endpoint:}") String endpoint,
+      @Value("${app.storage.public-endpoint:${app.storage.endpoint:}}") String publicEndpoint,
       @Value("${app.storage.access-key:}") String accessKey,
       @Value("${app.storage.secret-key:}") String secretKey,
       @Value("${app.storage.path-style-access:false}") boolean pathStyleAccess) {
     S3Presigner.Builder builder = S3Presigner.builder().region(Region.of(region));
-    configureEndpoint(builder, endpoint, accessKey, secretKey, pathStyleAccess);
+    configureEndpoint(builder, publicEndpoint, accessKey, secretKey, pathStyleAccess);
     return builder.build();
   }
 

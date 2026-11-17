@@ -10,12 +10,12 @@ import {
 } from "./api";
 
 const categories = [
-  { label: "트레이딩 카드", icon: "♠", tone: "violet" },
-  { label: "피규어", icon: "◉", tone: "orange" },
-  { label: "빈티지", icon: "◈", tone: "green" },
-  { label: "아트 토이", icon: "✦", tone: "blue" },
-  { label: "음반 · 굿즈", icon: "♫", tone: "red" },
-  { label: "전시회", icon: "▤", tone: "yellow" },
+  "트레이딩 카드",
+  "피규어",
+  "빈티지",
+  "아트 토이",
+  "음반 · 굿즈",
+  "전시회",
 ];
 
 const showcaseItems = [
@@ -41,7 +41,7 @@ const showcaseItems = [
     price: 160000,
     type: "구매 희망",
     accent: "green",
-    tag: "NEW",
+    tag: "신규",
   },
   {
     id: "m4",
@@ -53,8 +53,6 @@ const showcaseItems = [
   },
 ];
 
-const starField = Array.from({ length: 26 }, (_, index) => index);
-
 const formatPrice = (price) =>
   new Intl.NumberFormat("ko-KR").format(price ?? 0);
 
@@ -62,7 +60,7 @@ function ListingCard({ item, isFallback, onSelect }) {
   const isPurchase = item.type === "구매 희망";
   return (
     <article className="listing-card" onClick={() => onSelect(item)}>
-      <div className={`listing-art ${item.accent ?? "violet"}`}>
+      <div className="listing-art">
         {item.imageUrls?.[0] && (
           <img
             className="listing-image"
@@ -73,9 +71,9 @@ function ListingCard({ item, isFallback, onSelect }) {
         <span className="listing-tag">
           {item.tag ?? (isPurchase ? "구매 희망" : "판매 중")}
         </span>
-        <span className="listing-gridline" />
-        <span className="artifact">{isPurchase ? "◎" : "◇"}</span>
-        <span className="listing-orbit" />
+        {!item.imageUrls?.[0] && (
+          <span className="placeholder-image">상품 이미지</span>
+        )}
       </div>
       <div className="listing-copy">
         <span className={isPurchase ? "post-type wanted" : "post-type"}>
@@ -83,11 +81,7 @@ function ListingCard({ item, isFallback, onSelect }) {
         </span>
         <h3>{item.title}</h3>
         <strong>{formatPrice(item.price ?? item.desiredPrice)}원</strong>
-        <p>
-          {isFallback
-            ? "예시 컬렉션 · 백엔드 연결 후 실제 게시글로 교체됩니다."
-            : "Treasureverse 등록 게시글"}
-        </p>
+        <p>{isFallback ? "예시 게시글" : "안전 결제 지원"}</p>
       </div>
     </article>
   );
@@ -98,14 +92,14 @@ function ListingDetail({ item, onBack }) {
     <main className="detail-page">
       <header className="detail-header">
         <a
-          className="wordmark"
+          className="brand-logo"
           href="/"
           onClick={(event) => {
             event.preventDefault();
             onBack();
           }}
         >
-          TREASURE<span>VERSE</span>
+          <img src="/brand/treasureverse-logo.png" alt="Treasureverse" />
         </a>
         <button className="back-button" type="button" onClick={onBack}>
           ← 마켓으로 돌아가기
@@ -118,21 +112,23 @@ function ListingDetail({ item, onBack }) {
               <img key={url} src={url} alt={item.title} />
             ))
           ) : (
-            <div className="detail-placeholder">◇</div>
+            <div className="detail-placeholder">등록된 이미지가 없습니다</div>
           )}
         </div>
         <div className="detail-copy">
           <span className="eyebrow">{item.type ?? "판매"}</span>
           <h2>{item.title}</h2>
           <strong>{formatPrice(item.price ?? item.desiredPrice)}원</strong>
-          <p className="detail-meta">판매자와 안전하게 거래하세요.</p>
+          <p className="detail-meta">
+            판매자와 메시지로 거래 조건을 확인하세요.
+          </p>
           <button className="primary-button detail-action" type="button">
             문의하기
           </button>
         </div>
       </section>
       <section className="detail-description">
-        <span className="eyebrow">DESCRIPTION</span>
+        <span className="eyebrow">상품 설명</span>
         <h3>판매자 설명</h3>
         <p>{item.content ?? "등록된 상세 설명이 없습니다."}</p>
       </section>
@@ -194,7 +190,7 @@ function LoginPanel({ onClose, onLogin, onSignup, onError }) {
         >
           ×
         </button>
-        <span className="eyebrow">WELCOME BACK</span>
+        <span className="eyebrow">로그인</span>
         <h2>나의 보물을 이어가세요.</h2>
         <label>
           아이디
@@ -272,7 +268,7 @@ function SignupPanel({ onClose, onComplete, onError }) {
         >
           ×
         </button>
-        <span className="eyebrow">JOIN TREASUREVERSE</span>
+        <span className="eyebrow">회원가입</span>
         <h2>
           첫 번째 보물을
           <br />
@@ -358,12 +354,19 @@ function SignupPanel({ onClose, onComplete, onError }) {
 function SellPanel({ onClose, onCreated, onError }) {
   const [form, setForm] = useState({ title: "", content: "", price: "" });
   const [file, setFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const update = (event) =>
     setForm((previous) => ({
       ...previous,
       [event.target.name]: event.target.value,
     }));
+
+  function selectImage(event) {
+    const selectedFile = event.target.files?.[0] ?? null;
+    setFile(selectedFile);
+    setPreviewUrl(selectedFile ? URL.createObjectURL(selectedFile) : "");
+  }
 
   async function submit(event) {
     event.preventDefault();
@@ -397,7 +400,7 @@ function SellPanel({ onClose, onCreated, onError }) {
         >
           ×
         </button>
-        <span className="eyebrow">SELL A TREASURE</span>
+        <span className="eyebrow">판매 등록</span>
         <h2>
           새로운 컬렉터에게
           <br />
@@ -434,13 +437,16 @@ function SellPanel({ onClose, onCreated, onError }) {
           />
         </label>
         <label>
-          대표 이미지{" "}
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(event) => setFile(event.target.files?.[0] ?? null)}
-          />
+          대표 이미지
+          <input type="file" accept="image/*" onChange={selectImage} />
         </label>
+        <div className="image-upload-preview">
+          {previewUrl ? (
+            <img src={previewUrl} alt="선택한 대표 이미지 미리보기" />
+          ) : (
+            <span>이미지를 선택하면 미리보기가 표시됩니다.</span>
+          )}
+        </div>
         {file && (
           <p className="file-note">
             {file.name} · {(file.size / 1024 / 1024).toFixed(1)} MB
@@ -464,6 +470,7 @@ export default function App() {
   const [signupOpen, setSignupOpen] = useState(false);
   const [sellOpen, setSellOpen] = useState(false);
   const [selectedListing, setSelectedListing] = useState(null);
+  const [currentPath, setCurrentPath] = useState(window.location.pathname);
   const [errorMessage, setErrorMessage] = useState("");
   const [memberName, setMemberName] = useState(
     localStorage.getItem("treasureverse.memberName") ?? "",
@@ -489,16 +496,19 @@ export default function App() {
       const match = window.location.pathname.match(/^\/sale\/(\d+)$/);
       if (!match) {
         setSelectedListing(null);
+        setCurrentPath(window.location.pathname);
         return;
       }
 
       try {
         const salePost = await getSalePost(match[1]);
         setSelectedListing({ ...salePost, type: "판매" });
+        setCurrentPath(window.location.pathname);
       } catch (error) {
         setErrorMessage(error.message);
         window.history.replaceState({}, "", "/");
         setSelectedListing(null);
+        setCurrentPath("/");
       }
     }
 
@@ -538,12 +548,22 @@ export default function App() {
   function openListing(item) {
     setSelectedListing(item);
     window.history.pushState({ saleId: item.id }, "", `/sale/${item.id}`);
+    setCurrentPath(`/sale/${item.id}`);
     window.scrollTo(0, 0);
   }
 
   function closeListing() {
     setSelectedListing(null);
     window.history.pushState({}, "", "/");
+    setCurrentPath("/");
+  }
+
+  function navigate(event, path) {
+    event.preventDefault();
+    setSelectedListing(null);
+    setCurrentPath(path);
+    window.history.pushState({}, "", path);
+    window.scrollTo(0, 0);
   }
 
   if (selectedListing)
@@ -559,17 +579,185 @@ export default function App() {
       </div>
     );
 
+  if (currentPath !== "/") {
+    const page = {
+      "/market": {
+        title: "마켓",
+        description: "판매 상품과 구매 희망글을 목적에 맞게 둘러보세요.",
+      },
+      "/market/sale": {
+        title: "판매 게시판",
+        description: "지금 판매 중인 수집품입니다.",
+      },
+      "/market/purchase": {
+        title: "구매 게시판",
+        description: "컬렉터가 찾고 있는 수집품입니다.",
+      },
+      "/collection": {
+        title: "컬렉션",
+        description: "나만의 수집 기록을 관리하는 공간입니다.",
+      },
+      "/exhibitions": {
+        title: "전시회",
+        description: "준비 중인 전시회 정보를 곧 만나볼 수 있습니다.",
+      },
+      "/auctions": {
+        title: "경매",
+        description: "준비 중인 경매 정보를 곧 만나볼 수 있습니다.",
+      },
+    }[currentPath] ?? { title: "페이지를 찾을 수 없습니다.", description: "" };
+
+    return (
+      <div className="app-shell">
+        <header className="site-header">
+          <a
+            className="brand-logo"
+            href="/"
+            onClick={(event) => navigate(event, "/")}
+          >
+            <img src="/brand/treasureverse-logo.png" alt="Treasureverse" />
+          </a>
+          <nav aria-label="주요 탐색">
+            <a href="/market" onClick={(event) => navigate(event, "/market")}>
+              마켓
+            </a>
+            <a
+              href="/collection"
+              onClick={(event) => navigate(event, "/collection")}
+            >
+              컬렉션
+            </a>
+            <a
+              href="/exhibitions"
+              onClick={(event) => navigate(event, "/exhibitions")}
+            >
+              전시회
+            </a>
+            <a
+              href="/auctions"
+              onClick={(event) => navigate(event, "/auctions")}
+            >
+              경매
+            </a>
+          </nav>
+          <div className="header-actions">
+            <button
+              className="sell-button"
+              onClick={() =>
+                memberName ? setSellOpen(true) : setLoginOpen(true)
+              }
+            >
+              판매하기
+            </button>
+          </div>
+        </header>
+        <main className="subpage">
+          <div className="subpage-heading">
+            <h1>{page.title}</h1>
+            <p>{page.description}</p>
+          </div>
+          {currentPath.startsWith("/market") && (
+            <>
+              <div className="board-links">
+                <a
+                  href="/market/sale"
+                  className={currentPath === "/market/sale" ? "active" : ""}
+                  onClick={(event) => navigate(event, "/market/sale")}
+                >
+                  판매 게시판
+                </a>
+                <a
+                  href="/market/purchase"
+                  className={currentPath === "/market/purchase" ? "active" : ""}
+                  onClick={(event) => navigate(event, "/market/purchase")}
+                >
+                  구매 게시판
+                </a>
+              </div>
+              {currentPath === "/market" ? (
+                <div className="board-choice">
+                  <button onClick={(event) => navigate(event, "/market/sale")}>
+                    판매 상품 둘러보기
+                  </button>
+                  <button
+                    onClick={(event) => navigate(event, "/market/purchase")}
+                  >
+                    구매 희망글 보기
+                  </button>
+                </div>
+              ) : loading ? (
+                <div className="loading-state">게시글을 불러오는 중입니다…</div>
+              ) : (
+                <div className="listing-grid">
+                  {displayListings
+                    .filter((item) =>
+                      currentPath === "/market/sale"
+                        ? item.type === "판매"
+                        : item.type === "구매 희망",
+                    )
+                    .map((item) => (
+                      <ListingCard
+                        item={item}
+                        key={item.id}
+                        isFallback={Boolean(apiError || listings.length === 0)}
+                        onSelect={openListing}
+                      />
+                    ))}
+                </div>
+              )}
+            </>
+          )}
+          {!currentPath.startsWith("/market") && (
+            <div className="empty-page">서비스 준비 중입니다.</div>
+          )}
+        </main>
+        {sellOpen && (
+          <SellPanel
+            onClose={() => setSellOpen(false)}
+            onCreated={handleSaleCreated}
+            onError={setErrorMessage}
+          />
+        )}
+        {errorMessage && (
+          <ErrorModal
+            message={errorMessage}
+            onClose={() => setErrorMessage("")}
+          />
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="app-shell">
       <header className="site-header">
-        <a className="wordmark" href="#top" aria-label="Treasureverse 홈">
-          TREASURE<span>VERSE</span>
+        <a
+          className="brand-logo"
+          href="/"
+          onClick={(event) => navigate(event, "/")}
+          aria-label="Treasureverse 홈"
+        >
+          <img src="/brand/treasureverse-logo.png" alt="Treasureverse" />
         </a>
         <nav aria-label="주요 탐색">
-          <a href="#market">마켓</a>
-          <a href="#collect">컬렉션</a>
-          <a href="#exhibit">전시회</a>
-          <a href="#auction">경매</a>
+          <a href="/market" onClick={(event) => navigate(event, "/market")}>
+            마켓
+          </a>
+          <a
+            href="/collection"
+            onClick={(event) => navigate(event, "/collection")}
+          >
+            컬렉션
+          </a>
+          <a
+            href="/exhibitions"
+            onClick={(event) => navigate(event, "/exhibitions")}
+          >
+            전시회
+          </a>
+          <a href="/auctions" onClick={(event) => navigate(event, "/auctions")}>
+            경매
+          </a>
         </nav>
         <div className="header-actions">
           {memberName ? (
@@ -592,84 +780,40 @@ export default function App() {
 
       <main id="top">
         <section className="hero">
-          <div className="hero-stars" aria-hidden="true">
-            {starField.map((star) => (
-              <i key={star} style={{ "--star": star }} />
-            ))}
-          </div>
           <div className="hero-copy">
-            <span className="eyebrow">
-              <b /> COLLECTOR'S ORBIT · 2026
-            </span>
             <h1>
-              당신의 보물이
+              좋아하는 수집품을
               <br />
-              <em>우주를 건너</em>
-              <br />
-              빛나는 곳.
+              발견하고 거래하세요.
             </h1>
-            <p>
-              희귀한 취향은 별처럼 흩어지지 않도록.
-              <br />
-              발견하고, 기록하고, 다음 컬렉터에게 이어주세요.
-            </p>
+            <p>카드, 피규어, 빈티지, 굿즈까지. 나만의 컬렉션을 만나보세요.</p>
             <div className="search-box">
-              <span>⌕</span>
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="찾고 있는 수집품을 검색하세요"
                 aria-label="수집품 검색"
               />
-              <button>검색</button>
-            </div>
-            <div className="hero-stats">
-              <span>
-                <b>10K+</b> 발견된 보물
-              </span>
-              <span>
-                <b>24H</b> 실시간 탐색
-              </span>
+              <button type="button">검색</button>
             </div>
           </div>
-          <div className="hero-art" aria-label="컬렉션 오브제 일러스트">
-            <div className="nebula nebula-one" />
-            <div className="nebula nebula-two" />
-            <div className="planet planet-one">
-              <span />
-            </div>
-            <div className="planet planet-two" />
-            <div className="orbit-line orbit-line-one" />
-            <div className="orbit-line orbit-line-two" />
-            <div className="hero-object">
-              <span className="object-glow" />◇
-            </div>
-            <div className="signal-card">
-              <span className="signal-dot" /> RARE FIND
-              <br />
-              <b>01 · 094</b>
-            </div>
-            <span className="orbit orbit-one">DISCOVER · KEEP · TRADE</span>
-            <span className="orbit orbit-two">TREASUREVERSE</span>
+          <div className="hero-visual" aria-hidden="true">
+            <img src="/brand/treasureverse-logo.png" alt="" />
+            <span>수집 · 거래 · 연결</span>
           </div>
         </section>
 
         <section className="category-section" id="collect">
           <div className="section-heading">
             <div>
-              <span className="eyebrow">EXPLORE BY TYPE</span>
-              <h2>무엇을 찾고 있나요?</h2>
+              <h2>카테고리</h2>
             </div>
             <a href="#market">전체 카테고리 보기 →</a>
           </div>
           <div className="category-grid">
             {categories.map((category) => (
-              <button className="category-card" key={category.label}>
-                <span className={`category-icon ${category.tone}`}>
-                  {category.icon}
-                </span>
-                <span>{category.label}</span>
-                <small>둘러보기 →</small>
+              <button className="category-card" key={category}>
+                {category}
               </button>
             ))}
           </div>
@@ -678,8 +822,7 @@ export default function App() {
         <section className="market-section" id="market">
           <div className="section-heading">
             <div>
-              <span className="eyebrow">CURATED MARKET</span>
-              <h2>지금 주목받는 보물</h2>
+              <h2>새로 올라온 상품</h2>
             </div>
             <div className="listing-tabs">
               <button className="active">전체</button>
@@ -711,34 +854,30 @@ export default function App() {
           )}
         </section>
 
-        <section className="story-banner" id="exhibit">
-          <div className="banner-stars" aria-hidden="true" />{" "}
+        <section className="sell-banner" id="exhibit">
           <div>
-            <span className="eyebrow">TREASUREVERSE EXHIBITION</span>
-            <h2>
-              취향이 모이면
-              <br />
-              하나의 <em>은하</em>가 됩니다.
-            </h2>
-            <a href="#exhibit" className="light-link">
-              전시회 둘러보기 <span>→</span>
-            </a>
+            <h2>내 수집품을 판매해 보세요.</h2>
+            <p>
+              간단한 등록으로 관심 있는 컬렉터에게 상품을 소개할 수 있습니다.
+            </p>
           </div>
-          <div className="banner-orbit">
-            <div className="banner-mark">
-              TV
-              <br />
-              <span>2026</span>
-            </div>
-          </div>
+          <button
+            className="primary-button"
+            type="button"
+            onClick={() =>
+              memberName ? setSellOpen(true) : setLoginOpen(true)
+            }
+          >
+            판매글 등록하기
+          </button>
         </section>
       </main>
 
       <footer>
-        <a className="wordmark" href="#top">
-          TREASURE<span>VERSE</span>
+        <a className="brand-logo" href="#top">
+          <img src="/brand/treasureverse-logo.png" alt="Treasureverse" />
         </a>
-        <p>Collect what moves you.</p>
+        <p>수집하는 즐거움, 함께 나누는 가치</p>
         <span>© 2026 Treasureverse</span>
       </footer>
       {loginOpen && (

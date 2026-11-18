@@ -4,6 +4,7 @@ import com.treasureverse.backend.global.exception.BusinessException;
 import com.treasureverse.backend.global.exception.ErrorCode;
 import com.treasureverse.backend.purchase.domain.PurchasePostImage;
 import com.treasureverse.backend.purchase.domain.PurchasePostImageRepositoryPort;
+import java.util.List;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -22,5 +23,9 @@ public class PurchasePostImageService {
     if (!post.buyerId().equals(memberId)) throw new BusinessException(ErrorCode.CONFLICT);
     imageRepository.save(
         new PurchasePostImage(post, objectKey, (int) imageRepository.countByPostId(postId)));
+  }
+
+  public List<String> findObjectKeys(Long postId) {
+    return imageRepository.findByPostId(postId).stream().map(PurchasePostImage::objectKey).toList();
   }
 }

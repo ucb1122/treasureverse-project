@@ -8,6 +8,8 @@ import com.treasureverse.backend.purchase.domain.PurchasePostRepositoryPort;
 import com.treasureverse.backend.purchase.domain.PurchaseStatus;
 import java.math.BigDecimal;
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +36,11 @@ public class PurchasePostService {
   @Transactional(readOnly = true)
   public List<PurchasePost> findAll() {
     return postRepository.findAll();
+  }
+
+  @Transactional(readOnly = true)
+  public Page<PurchasePost> findPage(Pageable pageable) {
+    return postRepository.findAll(pageable);
   }
 
   @Transactional(readOnly = true)

@@ -2,6 +2,7 @@ package com.treasureverse.backend.purchase.infrastructure;
 
 import com.treasureverse.backend.purchase.domain.PurchasePostImage;
 import com.treasureverse.backend.purchase.domain.PurchasePostImageRepositoryPort;
+import java.util.List;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -15,6 +16,11 @@ public class PurchasePostImageRepositoryAdapter implements PurchasePostImageRepo
   @Override
   public long countByPostId(Long postId) {
     return repository.countByPostId(postId);
+  }
+
+  @Override
+  public List<PurchasePostImage> findByPostId(Long postId) {
+    return repository.findByPostIdOrderBySortOrderAsc(postId);
   }
 
   @Override

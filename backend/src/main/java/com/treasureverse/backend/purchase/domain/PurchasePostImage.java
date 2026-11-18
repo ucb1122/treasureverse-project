@@ -27,4 +27,8 @@ public class PurchasePostImage extends BaseTimeEntity {
     objectKey = k;
     sortOrder = s;
   }
+
+  public String objectKey() {
+    return objectKey;
+  }
 }

@@ -52,6 +52,13 @@ export function signup(payload) {
   });
 }
 
+export function socialSignup(payload) {
+  return request("/auth/social/signup", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
 export function createSalePost(payload) {
   return request("/sale-posts", {
     method: "POST",

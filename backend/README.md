@@ -35,3 +35,11 @@ cd backend
 ## Social login
 
 Kakao and Naver registrations are configured in `application-oauth.yml`. Keep client credentials in a local `.env` file or deployment environment variables, then activate the `oauth` profile. A social user must complete the address and phone-number onboarding step before account creation.
+
+### OAuth local setup
+
+1. Register `http://localhost:8080/login/oauth2/code/kakao` in the Kakao developer console and `http://localhost:8080/login/oauth2/code/naver` in the Naver developer console.
+2. Copy `backend/.env.example` to a local, ignored `.env` file and enter `KAKAO_CLIENT_ID`, `KAKAO_CLIENT_SECRET`, `NAVER_CLIENT_ID`, and `NAVER_CLIENT_SECRET`.
+3. Start the backend with `SPRING_PROFILES_ACTIVE=local,oauth`. Keep `OAUTH_FRONTEND_REDIRECT_URI=http://localhost:5173/oauth/callback` for local development.
+
+The browser enters the OAuth flow at `/oauth2/authorization/kakao` or `/oauth2/authorization/naver`. Existing social accounts receive Treasureverse JWT tokens; new users receive a single-use, ten-minute signup ticket and must provide their name, phone number, and address before a member account is created.

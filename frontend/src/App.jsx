@@ -6,6 +6,7 @@ import {
   getSalePost,
   getSalePosts,
   login,
+  socialSignup,
   signup,
   uploadSalePostImage,
 } from "./api";
@@ -256,6 +257,7 @@ function LoginPanel({ onClose, onLogin, onSignup, onError }) {
     try {
       const token = await login(username, password);
       localStorage.setItem("treasureverse.accessToken", token.accessToken);
+      localStorage.setItem("treasureverse.refreshToken", token.refreshToken);
       onLogin(username);
       onClose();
     } catch (requestError) {
@@ -302,12 +304,75 @@ function LoginPanel({ onClose, onLogin, onSignup, onError }) {
         <button className="primary-button" disabled={loading}>
           {loading ? "로그인 중…" : "로그인"}
         </button>
+        <div className="social-login-actions">
+          <button
+            className="social-login-button kakao"
+            type="button"
+            onClick={() => window.location.assign("/oauth2/authorization/kakao")}
+          >
+            카카오로 계속하기
+          </button>
+          <button
+            className="social-login-button naver"
+            type="button"
+            onClick={() => window.location.assign("/oauth2/authorization/naver")}
+          >
+            네이버로 계속하기
+          </button>
+        </div>
         <p className="form-note">
           계정이 없나요?{" "}
           <button className="inline-button" type="button" onClick={onSignup}>
             회원가입
           </button>
         </p>
+      </form>
+    </div>
+  );
+}
+
+function SocialSignupPanel({ ticketId, onComplete, onClose, onError }) {
+  const [form, setForm] = useState({
+    name: "",
+    phoneNumber: "",
+    postalCode: "",
+    address: "",
+    addressDetail: "",
+  });
+  const [loading, setLoading] = useState(false);
+  const update = (event) =>
+    setForm((previous) => ({ ...previous, [event.target.name]: event.target.value }));
+
+  async function submit(event) {
+    event.preventDefault();
+    setLoading(true);
+    try {
+      const token = await socialSignup({ ticketId, ...form });
+      localStorage.setItem("treasureverse.accessToken", token.accessToken);
+      localStorage.setItem("treasureverse.refreshToken", token.refreshToken);
+      onComplete(form.name);
+    } catch (requestError) {
+      onError(requestError.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
+      <form className="login-panel signup-panel" onSubmit={submit} onMouseDown={(event) => event.stopPropagation()}>
+        <button className="close-button" type="button" onClick={onClose} aria-label="추가 정보 입력 창 닫기">×</button>
+        <span className="eyebrow">소셜 회원가입</span>
+        <h2>거래를 위한 정보를<br />입력해 주세요.</h2>
+        <p className="form-note">안전한 거래와 배송을 위해 이름, 연락처, 주소가 필요합니다.</p>
+        <div className="form-grid">
+          <label>이름<input name="name" value={form.name} onChange={update} required /></label>
+          <label>전화번호<input name="phoneNumber" value={form.phoneNumber} onChange={update} placeholder="010-1234-5678" required /></label>
+          <label>우편번호<input name="postalCode" value={form.postalCode} onChange={update} /></label>
+          <label>주소<input name="address" value={form.address} onChange={update} required /></label>
+        </div>
+        <label>상세 주소<input name="addressDetail" value={form.addressDetail} onChange={update} /></label>
+        <button className="primary-button" disabled={loading}>{loading ? "가입 중…" : "소셜 회원가입 완료"}</button>
       </form>
     </div>
   );
@@ -562,6 +627,7 @@ export default function App() {
   const [selectedListing, setSelectedListing] = useState(null);
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
   const [errorMessage, setErrorMessage] = useState("");
+  const [socialSignupTicket, setSocialSignupTicket] = useState("");
   const [memberName, setMemberName] = useState(
     localStorage.getItem("treasureverse.memberName") ?? "",
   );
@@ -579,6 +645,28 @@ export default function App() {
         setErrorMessage(error.message);
       })
       .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    if (window.location.pathname !== "/oauth/callback") return;
+    const query = new URLSearchParams(window.location.search);
+    const fragment = new URLSearchParams(window.location.hash.slice(1));
+    const accessToken = fragment.get("accessToken");
+    const refreshToken = fragment.get("refreshToken");
+    const ticket = query.get("ticket");
+
+    if (accessToken && refreshToken) {
+      localStorage.setItem("treasureverse.accessToken", accessToken);
+      localStorage.setItem("treasureverse.refreshToken", refreshToken);
+      localStorage.setItem("treasureverse.memberName", "소셜 회원");
+      setMemberName("소셜 회원");
+    } else if (ticket) {
+      setSocialSignupTicket(ticket);
+    } else {
+      setErrorMessage("소셜 로그인을 완료하지 못했습니다. 다시 시도해 주세요.");
+    }
+    window.history.replaceState({}, "", "/");
+    setCurrentPath("/");
   }, []);
 
   useEffect(() => {
@@ -976,6 +1064,18 @@ export default function App() {
         <SignupPanel
           onClose={() => setSignupOpen(false)}
           onComplete={handleSignupComplete}
+          onError={setErrorMessage}
+        />
+      )}
+      {socialSignupTicket && (
+        <SocialSignupPanel
+          ticketId={socialSignupTicket}
+          onClose={() => setSocialSignupTicket("")}
+          onComplete={(name) => {
+            localStorage.setItem("treasureverse.memberName", name);
+            setMemberName(name);
+            setSocialSignupTicket("");
+          }}
           onError={setErrorMessage}
         />
       )}

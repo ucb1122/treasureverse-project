@@ -27,4 +27,14 @@ public class SocialAccount extends BaseTimeEntity {
   private String providerUserId;
 
   protected SocialAccount() {}
+
+  public SocialAccount(Member member, SocialProvider provider, String providerUserId) {
+    this.member = member;
+    this.provider = provider;
+    this.providerUserId = providerUserId;
+  }
+
+  public Member member() {
+    return member;
+  }
 }

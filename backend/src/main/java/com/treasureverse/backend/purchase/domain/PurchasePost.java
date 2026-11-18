@@ -50,6 +50,10 @@ public class PurchasePost extends BaseTimeEntity {
     return title;
   }
 
+  public String content() {
+    return content;
+  }
+
   public BigDecimal price() {
     return desiredPrice;
   }

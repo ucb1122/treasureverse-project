@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   createSalePost,
+  getPurchasePost,
   getPurchasePosts,
   getSalePost,
   getSalePosts,
@@ -88,6 +89,7 @@ function ListingCard({ item, isFallback, onSelect }) {
 }
 
 function ListingDetail({ item, onBack }) {
+  const isPurchase = item.type === "구매 희망";
   return (
     <main className="detail-page">
       <header className="detail-header">
@@ -106,7 +108,7 @@ function ListingDetail({ item, onBack }) {
         </button>
       </header>
       <section className="listing-detail detail-hero">
-        <div className="detail-gallery" aria-label="판매 이미지">
+        <div className="detail-gallery" aria-label="게시글 이미지">
           {item.imageUrls?.length ? (
             item.imageUrls.map((url) => (
               <img key={url} src={url} alt={item.title} />
@@ -120,7 +122,9 @@ function ListingDetail({ item, onBack }) {
           <h2>{item.title}</h2>
           <strong>{formatPrice(item.price ?? item.desiredPrice)}원</strong>
           <p className="detail-meta">
-            판매자와 메시지로 거래 조건을 확인하세요.
+            {isPurchase
+              ? "구매 희망자와 메시지로 거래 조건을 확인하세요."
+              : "판매자와 메시지로 거래 조건을 확인하세요."}
           </p>
           <button className="primary-button detail-action" type="button">
             문의하기
@@ -133,6 +137,92 @@ function ListingDetail({ item, onBack }) {
         <p>{item.content ?? "등록된 상세 설명이 없습니다."}</p>
       </section>
     </main>
+  );
+}
+
+function BoardListingPage({ type, onSelect, onError }) {
+  const [items, setItems] = useState([]);
+  const [sort, setSort] = useState("latest");
+  const [page, setPage] = useState(0);
+  const [hasNext, setHasNext] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const loadMoreRef = useRef(null);
+  const loadPosts = type === "판매" ? getSalePosts : getPurchasePosts;
+
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    loadPosts(0, 12, sort)
+      .then((result) => {
+        if (!active) return;
+        setItems(result.content.map((item) => ({ ...item, type })));
+        setPage(0);
+        setHasNext(result.hasNext);
+      })
+      .catch((error) => onError(error.message))
+      .finally(() => active && setLoading(false));
+    return () => {
+      active = false;
+    };
+  }, [sort, type]);
+
+  async function loadMore() {
+    if (loading || !hasNext) return;
+    setLoading(true);
+    try {
+      const result = await loadPosts(page + 1, 12, sort);
+      setItems((previous) => [
+        ...previous,
+        ...result.content.map((item) => ({ ...item, type })),
+      ]);
+      setPage(result.page);
+      setHasNext(result.hasNext);
+    } catch (error) {
+      onError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    if (!hasNext || loading || !loadMoreRef.current) return undefined;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) loadMore();
+      },
+      { rootMargin: "240px" },
+    );
+    observer.observe(loadMoreRef.current);
+    return () => observer.disconnect();
+  }, [hasNext, loading, page, sort, type]);
+
+  return (
+    <>
+      <div className="board-toolbar">
+        <strong>{type === "판매" ? "판매 중인 수집품" : "구매를 희망하는 수집품"}</strong>
+        <label>
+          정렬
+          <select value={sort} onChange={(event) => setSort(event.target.value)}>
+            <option value="latest">최신 등록순</option>
+            <option value="priceAsc">가격 낮은순</option>
+            <option value="priceDesc">가격 높은순</option>
+          </select>
+        </label>
+      </div>
+      {items.length > 0 && (
+        <div className="listing-grid">
+          {items.map((item) => (
+            <ListingCard item={item} key={item.id} onSelect={onSelect} />
+          ))}
+        </div>
+      )}
+      {!loading && items.length === 0 && (
+        <div className="empty-page">아직 등록된 게시글이 없습니다.</div>
+      )}
+      {loading && <div className="loading-state">게시글을 불러오는 중입니다…</div>}
+      {hasNext && <div ref={loadMoreRef} className="scroll-sentinel" aria-hidden="true" />}
+    </>
   );
 }
 
@@ -479,9 +569,9 @@ export default function App() {
   useEffect(() => {
     Promise.all([getSalePosts(), getPurchasePosts()])
       .then(([sales, purchases]) => {
-        setSalePosts(sales.map((item) => ({ ...item, type: "판매" })));
+        setSalePosts(sales.content.map((item) => ({ ...item, type: "판매" })));
         setPurchasePosts(
-          purchases.map((item) => ({ ...item, type: "구매 희망" })),
+          purchases.content.map((item) => ({ ...item, type: "구매 희망" })),
         );
       })
       .catch((error) => {
@@ -493,7 +583,7 @@ export default function App() {
 
   useEffect(() => {
     async function syncDetailRoute() {
-      const match = window.location.pathname.match(/^\/sale\/(\d+)$/);
+      const match = window.location.pathname.match(/^\/(sale|purchase)\/(\d+)$/);
       if (!match) {
         setSelectedListing(null);
         setCurrentPath(window.location.pathname);
@@ -501,8 +591,11 @@ export default function App() {
       }
 
       try {
-        const salePost = await getSalePost(match[1]);
-        setSelectedListing({ ...salePost, type: "판매" });
+        const post =
+          match[1] === "sale"
+            ? await getSalePost(match[2])
+            : await getPurchasePost(match[2]);
+        setSelectedListing({ ...post, type: match[1] === "sale" ? "판매" : "구매 희망" });
         setCurrentPath(window.location.pathname);
       } catch (error) {
         setErrorMessage(error.message);
@@ -547,8 +640,9 @@ export default function App() {
 
   function openListing(item) {
     setSelectedListing(item);
-    window.history.pushState({ saleId: item.id }, "", `/sale/${item.id}`);
-    setCurrentPath(`/sale/${item.id}`);
+    const postType = item.type === "구매 희망" ? "purchase" : "sale";
+    window.history.pushState({ postId: item.id }, "", `/${postType}/${item.id}`);
+    setCurrentPath(`/${postType}/${item.id}`);
     window.scrollTo(0, 0);
   }
 
@@ -685,25 +779,12 @@ export default function App() {
                     구매 희망글 보기
                   </button>
                 </div>
-              ) : loading ? (
-                <div className="loading-state">게시글을 불러오는 중입니다…</div>
               ) : (
-                <div className="listing-grid">
-                  {displayListings
-                    .filter((item) =>
-                      currentPath === "/market/sale"
-                        ? item.type === "판매"
-                        : item.type === "구매 희망",
-                    )
-                    .map((item) => (
-                      <ListingCard
-                        item={item}
-                        key={item.id}
-                        isFallback={Boolean(apiError || listings.length === 0)}
-                        onSelect={openListing}
-                      />
-                    ))}
-                </div>
+                <BoardListingPage
+                  type={currentPath === "/market/sale" ? "판매" : "구매 희망"}
+                  onSelect={openListing}
+                  onError={setErrorMessage}
+                />
               )}
             </>
           )}

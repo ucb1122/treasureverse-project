@@ -22,16 +22,20 @@ async function request(path, options = {}) {
   return payload.data;
 }
 
-export function getSalePosts() {
-  return request("/sale-posts");
+export function getSalePosts(page = 0, size = 20, sort = "latest") {
+  return request(`/sale-posts?page=${page}&size=${size}&sort=${sort}`);
 }
 
 export function getSalePost(salePostId) {
   return request(`/sale-posts/${salePostId}`);
 }
 
-export function getPurchasePosts() {
-  return request("/purchase-posts");
+export function getPurchasePosts(page = 0, size = 20, sort = "latest") {
+  return request(`/purchase-posts?page=${page}&size=${size}&sort=${sort}`);
+}
+
+export function getPurchasePost(purchasePostId) {
+  return request(`/purchase-posts/${purchasePostId}`);
 }
 
 export function login(username, password) {

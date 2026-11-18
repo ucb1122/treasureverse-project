@@ -1,6 +1,7 @@
 package com.treasureverse.backend.sale.presentation;
 
 import com.treasureverse.backend.global.response.ApiResponse;
+import com.treasureverse.backend.global.response.PageResponse;
 import com.treasureverse.backend.global.security.CurrentMember;
 import com.treasureverse.backend.sale.application.SalePostImageService;
 import com.treasureverse.backend.sale.application.SalePostService;
@@ -10,7 +11,8 @@ import com.treasureverse.backend.sale.presentation.request.UpdateSalePostRequest
 import com.treasureverse.backend.sale.presentation.response.SalePostResponse;
 import com.treasureverse.backend.storage.application.S3Service;
 import jakarta.validation.Valid;
-import java.util.List;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -58,8 +61,17 @@ public class SalePostController {
   }
 
   @GetMapping
-  public ApiResponse<List<SalePostResponse>> list() {
-    return ApiResponse.success(salePostService.findAll().stream().map(this::toResponse).toList());
+  public ApiResponse<PageResponse<SalePostResponse>> list(
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "20") int size,
+      @RequestParam(defaultValue = "latest") String sort) {
+    int validatedPage = Math.max(page, 0);
+    int validatedSize = Math.min(Math.max(size, 1), 50);
+    return ApiResponse.success(
+        PageResponse.from(
+            salePostService
+                .findPage(PageRequest.of(validatedPage, validatedSize, toSort(sort)))
+                .map(this::toResponse)));
   }
 
   @GetMapping("/{id}")
@@ -96,5 +108,13 @@ public class SalePostController {
         salePostImageService.findObjectKeys(salePost.getId()).stream()
             .map(storageService::viewUrl)
             .toList());
+  }
+
+  private Sort toSort(String sort) {
+    return switch (sort) {
+      case "priceAsc" -> Sort.by("price").ascending().and(Sort.by("id").descending());
+      case "priceDesc" -> Sort.by("price").descending().and(Sort.by("id").descending());
+      default -> Sort.by("id").descending();
+    };
   }
 }

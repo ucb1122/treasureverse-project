@@ -16,6 +16,14 @@ export default defineConfig(({ mode }) => {
           target: env.VITE_BACKEND_PROXY_TARGET ?? "http://localhost:8080",
           changeOrigin: true,
         },
+        "/oauth2": {
+          target: env.VITE_BACKEND_PROXY_TARGET ?? "http://localhost:8080",
+          changeOrigin: true,
+        },
+        "/login": {
+          target: env.VITE_BACKEND_PROXY_TARGET ?? "http://localhost:8080",
+          changeOrigin: true,
+        },
       },
     },
   };

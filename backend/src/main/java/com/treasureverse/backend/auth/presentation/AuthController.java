@@ -3,6 +3,8 @@ package com.treasureverse.backend.auth.presentation;
 import com.treasureverse.backend.auth.application.AuthService;
 import com.treasureverse.backend.auth.application.LoginCommand;
 import com.treasureverse.backend.auth.application.SignupCommand;
+import com.treasureverse.backend.auth.application.SocialLoginService;
+import com.treasureverse.backend.auth.application.SocialSignupCommand;
 import com.treasureverse.backend.auth.domain.TokenResult;
 import com.treasureverse.backend.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,9 +17,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/auth")
 public class AuthController {
   private final AuthService service;
+  private final SocialLoginService socialLoginService;
 
-  public AuthController(AuthService service) {
+  public AuthController(AuthService service, SocialLoginService socialLoginService) {
     this.service = service;
+    this.socialLoginService = socialLoginService;
   }
 
   @GetMapping("/username-availability")
@@ -46,6 +50,21 @@ public class AuthController {
   public ApiResponse<AuthToken> login(@Valid @RequestBody LoginRequest request) {
     return ApiResponse.success(
         toAuthToken(service.login(new LoginCommand(request.username(), request.password()))));
+  }
+
+  @PostMapping("/social/signup")
+  @Operation(summary = "소셜 회원 추가 정보 등록")
+  public ApiResponse<AuthToken> socialSignup(@Valid @RequestBody SocialSignupRequest request) {
+    return ApiResponse.success(
+        toAuthToken(
+            socialLoginService.signup(
+                new SocialSignupCommand(
+                    request.ticketId(),
+                    request.name(),
+                    request.phoneNumber(),
+                    request.postalCode(),
+                    request.address(),
+                    request.addressDetail()))));
   }
 
   @PostMapping("/refresh")

@@ -75,6 +75,10 @@ public class AuthService {
     tokens.blacklistAccess(c.getId(), jwt.remaining(c));
   }
 
+  public TokenResult issueForMember(Member member) {
+    return issue(member);
+  }
+
   private TokenResult issue(Member m) {
     TokenResult t = jwt.create(m);
     tokens.saveRefresh(

@@ -611,6 +611,27 @@ footer span {
   color: #888;
   font-size: 12px;
 }
+.social-login-actions {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+.social-login-button {
+  width: 100%;
+  border: 1px solid #d7d7d7;
+  border-radius: 6px;
+  padding: 12px;
+  font-weight: 700;
+}
+.social-login-button.kakao {
+  background: #fee500;
+  color: #191919;
+}
+.social-login-button.naver {
+  border-color: #03c75a;
+  background: #03c75a;
+  color: #fff;
+}
 .image-upload-preview img {
   width: 100%;
   max-height: 220px;
